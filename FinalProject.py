@@ -7,8 +7,16 @@ Created on Mon Apr 15 09:09:56 2024
 import pygame, random, simpleGE
 
 class Characters(simpleGE.Sprite):
-    def __init__(self, scene):
+    def __init__(self, 
+                 scene, 
+                 HP = 0,
+                 attack = 0,
+                 dodge = 0):
         super().__init__(scene)
+        
+        self.HP = HP
+        self.attack = attack
+        self.dodge = dodge
         
         self.image = (pygame.image.load("sonicWPlaceholder.png"))
         self.setSize(50, 75)
