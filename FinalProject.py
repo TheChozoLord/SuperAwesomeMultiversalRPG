@@ -27,6 +27,12 @@ class BattleScene(simpleGE.Scene):
         super().__init__()
         self.setImage("white.jpg")
         
+        self.Characters = Characters(self)
+        self.Enemies = Enemies(self)
+        
+        self.sprites = [self.Characters,
+                        self.Enemies]
+        
 def main():
     battle = BattleScene()
     battle.start()
