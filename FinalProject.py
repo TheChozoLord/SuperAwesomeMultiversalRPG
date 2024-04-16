@@ -9,13 +9,13 @@ import pygame, random, simpleGE
 class Characters(simpleGE.Sprite):
     def __init__(self, 
                  scene, 
-                 HP = 0,
-                 attack = 0,
-                 dodge = 0):
+                 HP = 5,
+                 atk = 5,
+                 dodge = 60):
         super().__init__(scene)
         
         self.HP = HP
-        self.attack = attack
+        self.atk = atk
         self.dodge = dodge
         self.name = "Sonic"
         
@@ -23,30 +23,43 @@ class Characters(simpleGE.Sprite):
         self.setSize(50, 75)
         self.position = (320, 400)
         
+    def attack(self, target):
+        print(f"""{target}""")
+        hit = random.randint(1,100)
+        if (hit >= target.dodge):
+            damage = random.randint(1, self.atk)
+            target.HP -= damage
+            print(f"""{self.name} deals {damage} points of damage to {target.name}.""")
+        else:
+            print(f"""{self.name} misses.""")
+        
 class Enemies(simpleGE.Sprite):
     def __init__(self, 
                  scene, 
-                 HP = 0,
-                 attack = 0,
-                 dodge = 0):
+                 HP = 2,
+                 atk = 1,
+                 dodge = 20):
         super().__init__(scene)
         
         self.HP = HP
-        self.attack = attack
+        self.atk = atk
         self.dodge = dodge
-        
-        def attack(self, target):
-            hit = random.randint(1,100)
-            if (hit >= target.dodge):
-                damage = random.randint(1, self.attack)
-                target.health -= damage
-                print(f"""{self.name} deals {damage} points of damage to {target.name}.""")
-            else:
-                print(f"""{self.name} misses.""")
+        self.name = "Skeley Boi"
         
         self.image = (pygame.image.load("skelenemy.jpg"))
         self.setSize(50, 75)
         self.position = (120, 400)
+        
+    def attack(self, target):
+        hit = random.randint(1,100)
+        if (hit >= target.dodge):
+            damage = random.randint(1, self.atk)
+            target.HP -= damage
+            print(f"""{self.name} deals {damage} points of damage to {target.name}.""")
+        else:
+            print(f"""{self.name} misses.""")
+        
+        
         
 class BattleScene(simpleGE.Scene):
     def __init__(self):
@@ -56,30 +69,34 @@ class BattleScene(simpleGE.Scene):
         self.Characters = Characters(self)
         self.Enemies = Enemies(self)
         
-        self.lblsonichealth = simpleGE.Label(f"{self.character.health}")
-        
-        def process(self):
-            self.fight()
-            self.Enemies(self.attack)
-        
-        def fight(self):
-            keepGoing = True
-            while keepGoing == True:
-                print(f"""{self.Character.name}: {self.Character.health}""")
-                print(f"""{self.Enemies.name}: {self.Enemies.health}""")
-                input("press enter to attack.")
-                self.Characters.attack(self.Enemies)
-                self.Enemies.attack(self.Characters)
-                if self.Character.health <= 0:
-                    print("You lose.")
-                    keepGoing = False
-                if self.Enemies.health <= 0:
-                    print("You win!")
-                    keepGoing = False
+        self.lblsonichealth = simpleGE.Label()
+        self.lblsonichealth.text = (f"{self.Characters.HP}")
+        self.lblsonichealth.center = (500, 100)
         
         self.sprites = [self.Characters,
                         self.Enemies,
                         self.lblsonichealth]
+        
+    def process(self):
+        if self.isKeyPressed(pygame.K_a):
+            print("Keypressed")
+            self.fight()
+        
+    def fight(self):
+        keepGoing = True
+        while keepGoing == True:
+            print(f"""{self.Characters.name}: {self.Characters.HP}""")
+            print(f"""{self.Enemies.name}: {self.Enemies.HP}""")
+            target = self.Enemies
+            self.Characters.attack(target)
+            target = self.Characters
+            self.Enemies.attack(target)
+            if self.Characters.HP <= 0:
+                print("You lose.")
+                keepGoing = False
+            if self.Enemies.HP <= 0:
+                print("You win!")
+                keepGoing = False
         
 def main():
     battle = BattleScene()
