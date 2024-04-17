@@ -4,7 +4,7 @@ Created on Mon Apr 15 09:09:56 2024
 
 @author: owen.merrill
 """
-import pygame, random, simpleGE
+import time, pygame, random, simpleGE
 
 class Characters(simpleGE.Sprite):
     def __init__(self, 
@@ -24,22 +24,25 @@ class Characters(simpleGE.Sprite):
         self.position = (500, 400)
         
     def attack(self, target):
-        if self.isKeyPressed(pygame.K_w):
-            hit = random.randint(1,100)
-            if (hit >= target.dodge):
-                damage = random.randint(1, self.atk)
-                target.HP -= damage
-                print(f"""{self.name} deals {damage} points of damage to {target.name}.""")
-            else:
-                print(f"""{self.name} misses.""")
-        if self.isKeyPressed(pygame.K_s):
-            hit = random.randint(1,100)
-            if (hit >= target.dodge):
-                damage = random.randint(1, self.atk)
-                target.HP -= damage
-                print(f"""{self.name} deals {damage} points of damage to {target.name}.""")
-            else:
-                print(f"""{self.name} misses.""")
+        print("Sonic Attacks")
+        hit = random.randint(1,100)
+        if (hit >= target.dodge):
+            damage = random.randint(1, self.atk)
+            target.HP -= damage
+            print(f"""{self.name} deals {damage} points of damage to {target.name}.""")
+        else:
+            print(f"""{self.name} misses.""")
+    
+    def SPattack(self, target):
+        print("Sonic uses his Special Attack")
+        hit = random.randint(1,100)
+        if (hit >= target.dodge):
+            damage = random.randint(1, self.atk)
+            target.HP -= damage
+            print(f"""{self.name} deals {damage} points of damage to {target.name}.""")
+        else:
+            print(f"""{self.name} misses.""")
+
         
 class Enemies(simpleGE.Sprite):
     def __init__(self, 
@@ -52,7 +55,7 @@ class Enemies(simpleGE.Sprite):
         self.HP = HP
         self.atk = atk
         self.dodge = dodge
-        self.name = "Skeley Boi"
+        self.name = "Skeley"
         
         self.image = (pygame.image.load("skelenemy.jpg"))
         self.setSize(50, 75)
@@ -74,6 +77,8 @@ class BattleScene(simpleGE.Scene):
         super().__init__()
         self.setImage("white.jpg")
         
+        self.outcome = 0
+        
         self.Characters = Characters(self)
         self.Enemies = Enemies(self)
         
@@ -90,32 +95,98 @@ class BattleScene(simpleGE.Scene):
                         self.lblsonichealth,
                         self.lblenemyhealth]
         
-    def process(self):
-        if self.isKeyPressed(pygame.K_a):
-            print("Keypressed")
-            self.fight()
-        
-    def fight(self):
-        keepGoing = True
-        while keepGoing == True:
-            print(f"""{self.Characters.name}: {self.Characters.HP}""")
-            print(f"""{self.Enemies.name}: {self.Enemies.HP}""")
-            target = self.Enemies
-            self.Characters.attack(target)
+    def processEvent(self, event):
+        if event.type == pygame.KEYDOWN:
+            if event.key ==  pygame.K_a:
+                print("Keypressed")
+                self.Characters.attack(self.Enemies)
+                self.lblenemyhealth.text = (f"{self.Enemies.name} HP: {self.Enemies.HP}")
+            if event.type == pygame.KEYDOWN:
+                if event.key ==  pygame.K_s:
+                    print("Keypressed")
+                    self.Characters.SPattack(self.Enemies)
+                    self.lblenemyhealth.text = (f"{self.Enemies.name} HP: {self.Enemies.HP}")
+            time.sleep(2)
+            self.Enemies.attack(self.Characters)
             self.lblsonichealth.text = (f"{self.Characters.name} HP: {self.Characters.HP}")
-            target = self.Characters
-            self.Enemies.attack(target)
-            self.lblenemyhealth.text = (f"{self.Enemies.name} HP: {self.Enemies.HP}")
-            if self.Characters.HP <= 0:
-                print("You lose.")
-                keepGoing = False
-            if self.Enemies.HP <= 0:
-                print("You win!")
-                keepGoing = False
+                
+    def process(self):
+        if self.Characters.HP <= 0:
+            print("You lose")
+            self.outcome = 1
+            self.stop()
+        if self.Enemies.HP <= 0:
+            print("You win")
+            self.outcome = 2
+            self.stop()
+
+class TitleScreen(simpleGE.Scene):
+    def __init__(self, outcome):
+        super().__init__()
+        self.setImage("white.jpg")
+        
+        self.response = "P"
+        
+        self.instructions = simpleGE.MultiLabel()
+        self.instructions.textLines = [
+            "Defeat your enemy.",
+            "Press a to attack.",
+            "Press s to use a special attack.",
+            "Good luck."
+            ]
+        
+        self.instructions.center = (320, 240)
+        self.instructions.size = (500, 250)
+        
+        self.btnPlay = simpleGE.Button()
+        self.btnPlay.text = "Play (up)"
+        self.btnPlay.center = (100, 400)
+        
+        self.btnQuit = simpleGE.Button()
+        self.btnQuit.text = "Quit (down)"
+        self.btnQuit.center = (550, 400)
+        
+        self.outcome = outcome
+        
+        
+        self.sprites = [self.instructions,
+                        self.btnPlay,
+                        self.btnQuit]
+                
+    def process(self):
+        if self.outcome == 1:
+            self.instructions.textLines = [
+                "You Lost.",
+                "Press a to attack.",
+                "Press s to use a special attack.",
+                "Good luck."
+                ]
+        if self.outcome == 2:
+            self.instructions.textLines = [
+                "You Won!",
+                "Press a to attack.",
+                "Press s to use a special attack.",
+                "Good luck."
+                ]
+        if self.isKeyPressed(pygame.K_UP):
+            self.response = "Play"
+            self.stop()
+        if self.isKeyPressed(pygame.K_DOWN):
+            self.response = "Quit"
+            self.stop()        
         
 def main():
-    battle = BattleScene()
-    battle.start()
+    keepGoing = True
+    outcome = 0
+    while keepGoing:
+        instructions = TitleScreen(outcome)
+        instructions.start()
+        if instructions.response == "Play":
+            battle = BattleScene()
+            battle.start()
+            outcome = battle.outcome
+        else:
+            keepGoing = False
         
 if __name__ == "__main__":
     main()
