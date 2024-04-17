@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Created on Mon Apr 15 09:09:56 2024
 
@@ -18,30 +17,23 @@ class Characters(simpleGE.Sprite):
         self.atk = atk
         self.dodge = dodge
         self.name = "Sonic"
+        self.spat = self.atk*2
         
         self.image = (pygame.image.load("sonicWPlaceholder.png"))
         self.setSize(50, 75)
         self.position = (500, 400)
         
     def attack(self, target):
-        print("Sonic Attacks")
         hit = random.randint(1,100)
         if (hit >= target.dodge):
             damage = random.randint(1, self.atk)
             target.HP -= damage
-            print(f"""{self.name} deals {damage} points of damage to {target.name}.""")
-        else:
-            print(f"""{self.name} misses.""")
     
     def SPattack(self, target):
-        print("Sonic uses his Special Attack")
         hit = random.randint(1,100)
         if (hit >= target.dodge):
-            damage = random.randint(1, self.atk)
+            damage = random.randint(self.atk, self.spat)
             target.HP -= damage
-            print(f"""{self.name} deals {damage} points of damage to {target.name}.""")
-        else:
-            print(f"""{self.name} misses.""")
 
 class Enemies(simpleGE.Sprite):
     def __init__(self, 
@@ -55,20 +47,24 @@ class Enemies(simpleGE.Sprite):
         self.atk = atk
         self.dodge = dodge
         self.name = "Skeley"
+        self.spat = self.atk*3
         
         self.image = (pygame.image.load("skelenemy.jpg"))
         self.setSize(50, 75)
         self.position = (120, 400)
         
     def attack(self, target):
-        print("Skeley attacks")
-        hit = random.randint(1,100)
-        if (hit >= target.dodge):
-            damage = random.randint(1, self.atk)
-            target.HP -= damage
-            print(f"""{self.name} deals {damage} points of damage to {target.name}.""")
-        else:
-            print(f"""{self.name} misses.""")
+        ai = random.randint(1, 100)
+        if (ai <= 85):
+            hit = random.randint(1,100)
+            if (hit >= target.dodge):
+                damage = random.randint(1, self.atk)
+                target.HP -= damage
+        if (ai > 85):
+            hit = random.randint(1,100)
+            if (hit >= target.dodge):
+                damage = random.randint(1, self.spat)
+                target.HP -= damage  
         
 class BattleScene(simpleGE.Scene):
     def __init__(self):
@@ -90,13 +86,13 @@ class BattleScene(simpleGE.Scene):
         
         self.lblfeed = simpleGE.Label()
         self.lblfeed.text = ("Battle Start!")
-        self.lblfeed.center = (300, 50)
-        self.lblfeed.size = (300, 40)
+        self.lblfeed.center = (300, 45)
+        self.lblfeed.size = (300, 25)
         
         self.lblenemyactions = simpleGE.Label()
         self.lblenemyactions.text = ("Battle Start!")
-        self.lblenemyactions.center = (320, 50)
-        self.lblenemyactions.size = (300, 40)
+        self.lblenemyactions.center = (300, 70)
+        self.lblenemyactions.size = (300, 25)
         
         self.sprites = [self.Characters,
                         self.Enemies,
@@ -119,17 +115,15 @@ class BattleScene(simpleGE.Scene):
                 self.enemyAttacks()
             
     def enemyAttacks(self):
-        self.lblfeed.text = (f"{self.Enemies.name} attacks {self.Characters.name}")
+        self.lblenemyactions.text = (f"{self.Enemies.name} attacks {self.Characters.name}")
         self.Enemies.attack(self.Characters)
         self.lblsonichealth.text = (f"{self.Characters.name} HP: {self.Characters.HP}")
                 
     def process(self):
         if self.Characters.HP <= 0:
-            print("You lose")
             self.outcome = 1
             self.stop()
         if self.Enemies.HP <= 0:
-            print("You win")
             self.outcome = 2
             self.stop()
 
