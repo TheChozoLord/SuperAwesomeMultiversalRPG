@@ -21,17 +21,25 @@ class Characters(simpleGE.Sprite):
         
         self.image = (pygame.image.load("sonicWPlaceholder.png"))
         self.setSize(50, 75)
-        self.position = (320, 400)
+        self.position = (500, 400)
         
     def attack(self, target):
-        print(f"""{target}""")
-        hit = random.randint(1,100)
-        if (hit >= target.dodge):
-            damage = random.randint(1, self.atk)
-            target.HP -= damage
-            print(f"""{self.name} deals {damage} points of damage to {target.name}.""")
-        else:
-            print(f"""{self.name} misses.""")
+        if self.isKeyPressed(pygame.K_w):
+            hit = random.randint(1,100)
+            if (hit >= target.dodge):
+                damage = random.randint(1, self.atk)
+                target.HP -= damage
+                print(f"""{self.name} deals {damage} points of damage to {target.name}.""")
+            else:
+                print(f"""{self.name} misses.""")
+        if self.isKeyPressed(pygame.K_s):
+            hit = random.randint(1,100)
+            if (hit >= target.dodge):
+                damage = random.randint(1, self.atk)
+                target.HP -= damage
+                print(f"""{self.name} deals {damage} points of damage to {target.name}.""")
+            else:
+                print(f"""{self.name} misses.""")
         
 class Enemies(simpleGE.Sprite):
     def __init__(self, 
@@ -70,12 +78,17 @@ class BattleScene(simpleGE.Scene):
         self.Enemies = Enemies(self)
         
         self.lblsonichealth = simpleGE.Label()
-        self.lblsonichealth.text = (f"{self.Characters.HP}")
+        self.lblsonichealth.text = (f"{self.Characters.name} HP: {self.Characters.HP}")
         self.lblsonichealth.center = (500, 100)
+        
+        self.lblenemyhealth = simpleGE.Label()
+        self.lblenemyhealth.text = (f"{self.Enemies.name} HP: {self.Enemies.HP}")
+        self.lblenemyhealth.center = (100, 100)
         
         self.sprites = [self.Characters,
                         self.Enemies,
-                        self.lblsonichealth]
+                        self.lblsonichealth,
+                        self.lblenemyhealth]
         
     def process(self):
         if self.isKeyPressed(pygame.K_a):
@@ -89,8 +102,10 @@ class BattleScene(simpleGE.Scene):
             print(f"""{self.Enemies.name}: {self.Enemies.HP}""")
             target = self.Enemies
             self.Characters.attack(target)
+            self.lblsonichealth.text = (f"{self.Characters.name} HP: {self.Characters.HP}")
             target = self.Characters
             self.Enemies.attack(target)
+            self.lblenemyhealth.text = (f"{self.Enemies.name} HP: {self.Enemies.HP}")
             if self.Characters.HP <= 0:
                 print("You lose.")
                 keepGoing = False
