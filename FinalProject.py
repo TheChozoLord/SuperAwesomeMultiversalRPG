@@ -5,19 +5,40 @@ Created on Mon Apr 15 09:09:56 2024
 """
 import pygame, random, simpleGE
 
+#def characters():
+    #[name, HP, attack, dodge, MP, picture]
+    #{Sonic: ["Sonic", 6, 7, 80, 16, sonicWPlaceholder.png]}
+    #{Surge: ["Surge", 10, 10, 30, 12, Surge_Placeholder.png]}
+    #{Three: ["Three", 4, 8, 75, 8, Agent_3_Placeholder.png]}
+    
+class characterSelect(simpleGE.Sprite):
+    def __init__(self, scene):
+        super().__init__(scene)
+        self.image = (pygame.image.load("sonicWPlaceholder.png"))
+        self.setSize(50, 75)
+        self.position = (320, 50)
+
 class Characters(simpleGE.Sprite):
     def __init__(self, 
                  scene, 
                  HP = 5,
                  atk = 5,
-                 dodge = 60):
+                 dodge = 60,
+                 MP = 12,
+                 name = "Sonic"):
         super().__init__(scene)
+        
+        characterDictionary ={
+            1: ["Sonic", 6, 7, 80, 16, "sonicWPlaceholder.png"],
+            2: ["Surge", 10, 10, 30, 12, "Surge_Placeholder.png"],
+            3: ["Three", 4, 8, 75, 8, "Agent_3_Placeholder.png"]}
         
         self.HP = HP
         self.atk = atk
         self.dodge = dodge
-        self.name = "Sonic"
+        self.name = name
         self.spat = self.atk*2
+        self.MP = MP
         
         self.image = (pygame.image.load("sonicWPlaceholder.png"))
         self.setSize(50, 75)
@@ -30,15 +51,20 @@ class Characters(simpleGE.Sprite):
             target.HP -= damage
     
     def SPattack(self, target):
-        hit = random.randint(1,100)
-        if (hit >= target.dodge):
-            damage = random.randint(self.atk, self.spat)
-            target.HP -= damage
+        if (self.MP >= 4):
+            self.enough = 1
+            self.MP = self.MP - 4
+            hit = random.randint(1,100)
+            if (hit >= target.dodge):
+                damage = random.randint(self.atk, self.spat)
+                target.HP -= damage
+        else:
+            self.enough = 0
 
 class Enemies(simpleGE.Sprite):
     def __init__(self, 
                  scene, 
-                 HP = 10,
+                 HP = 30,
                  atk = 1,
                  dodge = 20):
         super().__init__(scene)
@@ -54,6 +80,7 @@ class Enemies(simpleGE.Sprite):
         self.position = (120, 400)
         
     def attack(self, target):
+        print ("Skeley attacks")
         ai = random.randint(1, 100)
         if (ai <= 85):
             hit = random.randint(1,100)
@@ -76,8 +103,12 @@ class BattleScene(simpleGE.Scene):
         self.Characters = Characters(self)
         self.Enemies = Enemies(self)
         
-        self.lblsonichealth = simpleGE.Label()
-        self.lblsonichealth.text = (f"{self.Characters.name} HP: {self.Characters.HP}")
+        self.lblsonichealth = simpleGE.MultiLabel()
+        self.lblsonichealth.textLines = [
+            f"{self.Characters.name},",
+            f"HP: {self.Characters.HP}",
+            f"MP: {self.Characters.MP}"
+                                         ]
         self.lblsonichealth.center = (500, 100)
         
         self.lblenemyhealth = simpleGE.Label()
@@ -109,15 +140,27 @@ class BattleScene(simpleGE.Scene):
                 self.lblenemyhealth.text = (f"{self.Enemies.name} HP: {self.Enemies.HP}")
                 self.enemyAttacks()
             if event.key ==  pygame.K_s:
-                self.lblfeed.text = (f"{self.Characters.name} uses spcial attack on {self.Enemies.name}")
                 self.Characters.SPattack(self.Enemies)
+                if self.Characters.enough == 1:
+                    self.lblsonichealth.textLines = [
+                        f"{self.Characters.name},",
+                        f"HP: {self.Characters.HP}",
+                        f"MP: {self.Characters.MP}"
+                                                     ]
+                    self.lblfeed.text = (f"{self.Characters.name} uses spcial attack on {self.Enemies.name}")
+                if self.Characters.enough == 0:
+                    self.lblfeed.text = ("You dont have enough MP")
                 self.lblenemyhealth.text = (f"{self.Enemies.name} HP: {self.Enemies.HP}")
                 self.enemyAttacks()
             
     def enemyAttacks(self):
         self.lblenemyactions.text = (f"{self.Enemies.name} attacks {self.Characters.name}")
         self.Enemies.attack(self.Characters)
-        self.lblsonichealth.text = (f"{self.Characters.name} HP: {self.Characters.HP}")
+        self.lblsonichealth.textLines = [
+            f"{self.Characters.name},",
+            f"HP: {self.Characters.HP}",
+            f"MP: {self.Characters.MP}"
+                                         ]
                 
     def process(self):
         if self.Characters.HP <= 0:
@@ -131,6 +174,8 @@ class TitleScreen(simpleGE.Scene):
     def __init__(self, outcome):
         super().__init__()
         self.setImage("white.jpg")
+        
+        self.charSelectSprite = characterSelect(self)
         
         self.response = "P"
         
@@ -153,11 +198,14 @@ class TitleScreen(simpleGE.Scene):
         self.btnQuit.text = "Quit (down)"
         self.btnQuit.center = (550, 400)
         
+        self.charSelect = 1
+        
         self.outcome = outcome
         
         self.sprites = [self.instructions,
                         self.btnPlay,
-                        self.btnQuit]
+                        self.btnQuit,
+                        self.charSelectSprite]
                 
     def process(self):
         if self.outcome == 1:
@@ -174,13 +222,36 @@ class TitleScreen(simpleGE.Scene):
                 "Press s to use a special attack.",
                 "Good luck."
                 ]
-        if self.isKeyPressed(pygame.K_UP):
-            self.response = "Play"
-            self.stop()
-        if self.isKeyPressed(pygame.K_DOWN):
-            self.response = "Quit"
-            self.stop()        
-        
+            
+    def processEvent(self, event):
+        if event.type == pygame.KEYDOWN:
+            if self.isKeyPressed(pygame.K_UP):
+                self.response = "Play"
+                self.stop()
+            if self.isKeyPressed(pygame.K_DOWN):
+                self.response = "Quit"
+                self.stop()        
+            if self.isKeyPressed(pygame.K_RIGHT):
+                self.charSelect += 1
+                if self.charSelect >= 4:
+                    self.charSelect = 1
+            if self.isKeyPressed(pygame.K_LEFT):
+                self.charSelect -= 1
+                if self.charSelect <= 0:
+                    self.charSelect = 3
+            if self.charSelect == 1:
+                self.charSelectSprite.image = pygame.image.load("sonicWPlaceholder.png")
+                self.charSelectSprite.setSize(50, 75)
+                self.charSelectSprite.position = (320, 50)
+            if self.charSelect == 2:
+                self.charSelectSprite.image = pygame.image.load("Surge_Placeholder.png")
+                self.charSelectSprite.setSize(50, 75)
+                self.charSelectSprite.position = (320, 50)
+            if self.charSelect == 3:
+                self.charSelectSprite.image = pygame.image.load("Agent_3_Placeholder.png")
+                self.charSelectSprite.setSize(50, 75)
+                self.charSelectSprite.position = (320, 50)
+
 def main():
     keepGoing = True
     outcome = 0
