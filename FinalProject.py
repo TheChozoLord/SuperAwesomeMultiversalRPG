@@ -4,7 +4,7 @@ Created on Mon Apr 15 09:09:56 2024
 
 @author: owen.merrill
 """
-import time, pygame, random, simpleGE
+import pygame, random, simpleGE
 
 class Characters(simpleGE.Sprite):
     def __init__(self, 
@@ -43,7 +43,6 @@ class Characters(simpleGE.Sprite):
         else:
             print(f"""{self.name} misses.""")
 
-        
 class Enemies(simpleGE.Sprite):
     def __init__(self, 
                  scene, 
@@ -71,8 +70,6 @@ class Enemies(simpleGE.Sprite):
         else:
             print(f"""{self.name} misses.""")
         
-        
-        
 class BattleScene(simpleGE.Scene):
     def __init__(self):
         super().__init__()
@@ -96,11 +93,17 @@ class BattleScene(simpleGE.Scene):
         self.lblfeed.center = (300, 50)
         self.lblfeed.size = (300, 40)
         
+        self.lblenemyactions = simpleGE.Label()
+        self.lblenemyactions.text = ("Battle Start!")
+        self.lblenemyactions.center = (320, 50)
+        self.lblenemyactions.size = (300, 40)
+        
         self.sprites = [self.Characters,
                         self.Enemies,
                         self.lblsonichealth,
                         self.lblenemyhealth,
-                        self.lblfeed]
+                        self.lblfeed,
+                        self.lblenemyactions]
         
     def processEvent(self, event):
         if event.type == pygame.KEYDOWN:
@@ -114,10 +117,8 @@ class BattleScene(simpleGE.Scene):
                 self.Characters.SPattack(self.Enemies)
                 self.lblenemyhealth.text = (f"{self.Enemies.name} HP: {self.Enemies.HP}")
                 self.enemyAttacks()
-            #self.enemyAttacks()
             
     def enemyAttacks(self):
-        #time.sleep(3)
         self.lblfeed.text = (f"{self.Enemies.name} attacks {self.Characters.name}")
         self.Enemies.attack(self.Characters)
         self.lblsonichealth.text = (f"{self.Characters.name} HP: {self.Characters.HP}")
@@ -159,7 +160,6 @@ class TitleScreen(simpleGE.Scene):
         self.btnQuit.center = (550, 400)
         
         self.outcome = outcome
-        
         
         self.sprites = [self.instructions,
                         self.btnPlay,
