@@ -47,7 +47,7 @@ class Characters(simpleGE.Sprite):
 class Enemies(simpleGE.Sprite):
     def __init__(self, 
                  scene, 
-                 HP = 2,
+                 HP = 10,
                  atk = 1,
                  dodge = 20):
         super().__init__(scene)
@@ -62,6 +62,7 @@ class Enemies(simpleGE.Sprite):
         self.position = (120, 400)
         
     def attack(self, target):
+        print("Skeley attacks")
         hit = random.randint(1,100)
         if (hit >= target.dodge):
             damage = random.randint(1, self.atk)
@@ -90,25 +91,36 @@ class BattleScene(simpleGE.Scene):
         self.lblenemyhealth.text = (f"{self.Enemies.name} HP: {self.Enemies.HP}")
         self.lblenemyhealth.center = (100, 100)
         
+        self.lblfeed = simpleGE.Label()
+        self.lblfeed.text = ("Battle Start!")
+        self.lblfeed.center = (300, 50)
+        self.lblfeed.size = (300, 40)
+        
         self.sprites = [self.Characters,
                         self.Enemies,
                         self.lblsonichealth,
-                        self.lblenemyhealth]
+                        self.lblenemyhealth,
+                        self.lblfeed]
         
     def processEvent(self, event):
         if event.type == pygame.KEYDOWN:
             if event.key ==  pygame.K_a:
-                print("Keypressed")
+                self.lblfeed.text = (f"{self.Characters.name} attacks {self.Enemies.name}")
                 self.Characters.attack(self.Enemies)
                 self.lblenemyhealth.text = (f"{self.Enemies.name} HP: {self.Enemies.HP}")
-            if event.type == pygame.KEYDOWN:
-                if event.key ==  pygame.K_s:
-                    print("Keypressed")
-                    self.Characters.SPattack(self.Enemies)
-                    self.lblenemyhealth.text = (f"{self.Enemies.name} HP: {self.Enemies.HP}")
-            time.sleep(2)
-            self.Enemies.attack(self.Characters)
-            self.lblsonichealth.text = (f"{self.Characters.name} HP: {self.Characters.HP}")
+                self.enemyAttacks()
+            if event.key ==  pygame.K_s:
+                self.lblfeed.text = (f"{self.Characters.name} uses spcial attack on {self.Enemies.name}")
+                self.Characters.SPattack(self.Enemies)
+                self.lblenemyhealth.text = (f"{self.Enemies.name} HP: {self.Enemies.HP}")
+                self.enemyAttacks()
+            #self.enemyAttacks()
+            
+    def enemyAttacks(self):
+        #time.sleep(3)
+        self.lblfeed.text = (f"{self.Enemies.name} attacks {self.Characters.name}")
+        self.Enemies.attack(self.Characters)
+        self.lblsonichealth.text = (f"{self.Characters.name} HP: {self.Characters.HP}")
                 
     def process(self):
         if self.Characters.HP <= 0:
